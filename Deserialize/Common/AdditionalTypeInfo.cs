@@ -1,8 +1,6 @@
-﻿using DeserializeClassBuilder.Deserialize.Enums;
+﻿using DeserializeClassBuilder.Deserialize.Common.AdditionalInfo;
+using DeserializeClassBuilder.Deserialize.Enums;
 using DeserializeClassBuilder.Deserialize.Exceptions;
-using DeserializeClassBuilder.Deserialize.Record;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace DeserializeClassBuilder.Deserialize.Common
 {
@@ -46,62 +44,6 @@ namespace DeserializeClassBuilder.Deserialize.Common
 
                 default:
                     throw new InvalidStructureException("Unknown member type");
-            }
-
-        }
-
-        public interface IAdditionalInfo
-        {
-        }
-
-        public class AdditionalInfoPrimitiveType : IAdditionalInfo
-        {
-            public PrimitiveType Type { get; private set; }
-
-            public AdditionalInfoPrimitiveType(DeserializeReader reader)
-            {
-                Type = reader.ReadEnum<PrimitiveType>();
-                if (Type == PrimitiveType.Invalid)
-                {
-                    throw new InvalidStructureException("Invalid class member type");
-                }
-            }
-
-            public override string ToString()
-            {
-                return $"Type = {Type}";
-            }
-        }
-
-        public class AdditionalInfoSystemClass : IAdditionalInfo
-        {
-            public string ClassName { get; private set; }
-
-            public AdditionalInfoSystemClass(DeserializeReader reader)
-            {
-                ClassName = reader.ReadString();
-            }
-
-            public override string ToString()
-            {
-                return $"ClassName = {ClassName}";
-            }
-        }
-
-        public class AdditionalInfoClassTypeInfo : IAdditionalInfo
-        {
-            public string ClassName { get; private set; }
-            public int LibraryId { get; private set; }
-
-            public AdditionalInfoClassTypeInfo(DeserializeReader reader)
-            {
-                ClassName = reader.ReadString();
-                LibraryId = reader.ReadInt32();
-            }
-
-            public override string ToString()
-            {
-                return $"ClassName = {ClassName}; LibraryId = {LibraryId}";
             }
         }
     }
