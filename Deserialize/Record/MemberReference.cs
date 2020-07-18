@@ -8,7 +8,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
     ///
     /// [MS-NRBF] 2.5.3 MemberReference
     /// </summary>
-    public class MemberReference : RecordTypeStructure
+    internal class MemberReference : RecordTypeStructure
     {
         public int IdRef { get; }
 

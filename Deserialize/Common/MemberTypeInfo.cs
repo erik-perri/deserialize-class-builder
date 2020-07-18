@@ -10,7 +10,7 @@ namespace DeserializeClassBuilder.Deserialize.Common
     ///
     /// [MS-NRBF] 2.3.1.2 MemberTypeInfo
     /// </summary>
-    public class MemberTypeInfo
+    internal class MemberTypeInfo
     {
         public ReadOnlyDictionary<string, BinaryType> Types { get; private set; }
         public ReadOnlyDictionary<string, AdditionalTypeInfo> Infos { get; private set; }

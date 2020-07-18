@@ -8,7 +8,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
     ///
     /// [MS-NRBF] 2.6.1 SerializationHeaderRecord
     /// </summary>
-    public class SerializationHeaderRecord : RecordTypeStructure
+    internal class SerializationHeaderRecord : RecordTypeStructure
     {
         public int RootId { get; }
         public int HeaderId { get; }

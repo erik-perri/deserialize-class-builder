@@ -5,7 +5,7 @@
     ///
     /// [MS-NRBF] 2.1.2.3 PrimitiveTypeEnumeration
     /// </summary>
-    public enum PrimitiveType
+    internal enum PrimitiveType
     {
         Invalid = -1,
         Boolean = 1,

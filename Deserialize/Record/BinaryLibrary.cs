@@ -9,7 +9,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
     ///
     /// [MS-NRBF] 2.6.2 BinaryLibrary
     /// </summary>
-    public class BinaryLibrary : RecordTypeStructure
+    internal class BinaryLibrary : RecordTypeStructure
     {
         public int LibraryId { get; }
         public string LibraryName { get; }

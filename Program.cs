@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace DeserializeClassBuilder
 {
-    class Program
+    internal class Program
     {
         static int Main(string[] args)
         {

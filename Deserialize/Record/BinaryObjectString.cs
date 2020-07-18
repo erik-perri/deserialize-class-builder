@@ -7,7 +7,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
     ///
     /// [MS-NRBF] 2.5.7 BinaryObjectString
     /// </summary>
-    public class BinaryObjectString : RecordTypeStructure
+    internal class BinaryObjectString : RecordTypeStructure
     {
         public int ObjectId { get; }
         public string Value { get; }

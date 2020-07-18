@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace DeserializeClassBuilder.Deserialize.Exceptions
 {
-    public class DeserializeException : Exception
+    internal class DeserializeException : Exception
     {
         public DeserializeException()
         {

@@ -14,7 +14,7 @@ namespace DeserializeClassBuilder.Deserialize.Common
     ///
     /// [MS-NRBF] 2.3.1.2 MemberTypeInfo
     /// </summary>
-    public class AdditionalTypeInfo
+    internal partial class AdditionalTypeInfo
     {
         public IAdditionalInfo Info { get; }
 

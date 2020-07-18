@@ -11,7 +11,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
     ///
     /// [MS-NRBF] 2.4.3.1 BinaryArray
     /// </summary>
-    public class BinaryArray : RecordTypeStructure
+    internal class BinaryArray : RecordTypeStructure
     {
         public int ObjectId { get; }
         public BinaryArrayType BinaryArrayType { get; }

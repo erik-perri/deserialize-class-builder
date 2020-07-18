@@ -11,7 +11,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
     ///
     /// [MS-NRBF] 2.3.2.1 ClassWithMembersAndTypes
     /// </summary>
-    public class ClassWithMemberAndTypes : RecordTypeStructure
+    internal class ClassWithMemberAndTypes : RecordTypeStructure
     {
         public ClassInfo ClassInfo { get; }
         public MemberTypeInfo MemberTypeInfo { get; }

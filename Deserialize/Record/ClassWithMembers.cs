@@ -11,7 +11,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
     ///
     /// [MS-NRBF] 2.3.2.2 ClassWithMembers
     /// </summary>
-    public class ClassWithMembers : RecordTypeStructure
+    internal class ClassWithMembers : RecordTypeStructure
     {
         public ClassInfo ClassInfo { get; }
         public int LibraryId { get; }

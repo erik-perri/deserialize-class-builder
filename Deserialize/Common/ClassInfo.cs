@@ -9,7 +9,7 @@ namespace DeserializeClassBuilder.Deserialize.Common
     ///
     /// [MS-NRBF] 2.3.1.1 ClassInfo
     /// </summary>
-    public class ClassInfo
+    internal class ClassInfo
     {
         public int ObjectId { get; private set; }
         public string ClassName { get; private set; }

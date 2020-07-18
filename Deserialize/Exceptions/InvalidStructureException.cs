@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace DeserializeClassBuilder.Deserialize.Exceptions
 {
-    public class InvalidStructureException : DeserializeException
+    internal class InvalidStructureException : DeserializeException
     {
         public InvalidStructureException()
         {

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace DeserializeClassBuilder.Deserialize.Record
 {
-    abstract public class RecordTypeStructure
+    internal abstract class RecordTypeStructure
     {
         public RecordType Type { get; }
 

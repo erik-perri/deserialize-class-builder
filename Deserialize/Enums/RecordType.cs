@@ -6,7 +6,7 @@
     ///
     /// [MS-NRBF] 2.1.2.1 RecordTypeEnumeration
     /// </summary>
-    public enum RecordType
+    internal enum RecordType
     {
         Invalid = -1,
         SerializedStreamHeader = 0,

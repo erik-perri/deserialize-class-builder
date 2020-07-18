@@ -6,7 +6,7 @@
     ///
     /// [MS-NRBF] 2.1.2.2 BinaryTypeEnumeration
     /// </summary>
-    public enum BinaryType
+    internal enum BinaryType
     {
         Invalid = -1,
         Primitive = 0,

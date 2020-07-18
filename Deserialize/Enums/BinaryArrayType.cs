@@ -6,7 +6,7 @@
     ///
     /// [MS-NRBF] 2.4.1.1 BinaryArrayTypeEnumeration
     /// </summary>
-    public enum BinaryArrayType
+    internal enum BinaryArrayType
     {
         Invalid = -1,
         Single = 0,

@@ -10,7 +10,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
     ///
     /// [MS-NRBF] 2.3.2.5 ClassWithId
     /// </summary>
-    public class ClassWithId : RecordTypeStructure
+    internal class ClassWithId : RecordTypeStructure
     {
         public int ObjectId { get; }
         public int MetadataId { get; }

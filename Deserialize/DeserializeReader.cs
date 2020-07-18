@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DeserializeClassBuilder.Deserialize
 {
-    public class DeserializeReader : BinaryReader
+    internal class DeserializeReader : BinaryReader
     {
         public DeserializeReader(Stream input) : base(input)
         {
