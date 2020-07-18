@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace DeserializeClassBuilder
@@ -19,7 +18,7 @@ namespace DeserializeClassBuilder
         /// <param name="needle">The target string to search</param>
         /// <param name="resultLimit">The maximum number of results to return</param>
         /// <returns>The start index of the substring</returns>
-        public static ReadOnlyCollection<int> IndexesOf(byte[] haystack, byte[] needle, int resultLimit = -1)
+        public static int[] IndexesOf(byte[] haystack, byte[] needle, int resultLimit = -1)
         {
             if (needle == null)
             {
@@ -59,18 +58,18 @@ namespace DeserializeClassBuilder
 
                         if (resultLimit != -1 && offsets.Count > resultLimit)
                         {
-                            return new ReadOnlyCollection<int>(offsets);
+                            return offsets.ToArray();
                         }
 
                         break;
                     }
                 }
-                
+
                 // i += needle.length - j; // For naive method
                 i += Math.Max(offsetTable[needle.Length - 1 - j], charTable[haystack[i]]);
             }
 
-            return new ReadOnlyCollection<int>(offsets);
+            return offsets.ToArray();
         }
 
         /// <summary>
