@@ -1,49 +1,179 @@
 ﻿using DeserializeClassBuilder.Deserialize;
 using DeserializeClassBuilder.Deserialize.Enums;
+using DeserializeClassBuilder.Deserialize.Exceptions;
 using DeserializeClassBuilder.Deserialize.Record;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace DeserializeClassBuilder
 {
     internal class Program
     {
-        static int Main(string[] args)
+        private static bool confirmedOverwrite;
+
+        /// <summary>
+        /// Attempt to dump a set of classes that can be used to deserialize a .NET binary stream
+        /// </summary>
+        /// <param name="argument">The file to parse</param>
+        /// <param name="classPrefix">Search for classes with the specified prefix (supports multiple)</param>
+        /// <param name="fullScan">Search every possible class structure</param>
+        /// <param name="namespaceToOutput">The namespace to use in the output files</param>
+        /// <param name="outputPath">Where to output the files, if not supplied will create an 'generated' directory in the input directory</param>
+        /// <returns></returns>
+        private static int Main(
+            FileInfo argument,
+            string[] classPrefix,
+            bool fullScan,
+            string namespaceToOutput = "DeserializeClassBuilder",
+            DirectoryInfo outputPath = null
+        )
         {
-            if (args.Length < 2)
+            if (!fullScan && (classPrefix == null || classPrefix.Length < 1))
             {
-                Console.WriteLine("Usage: builder <file> <class-name-substr>");
+                Console.WriteLine("Either --full-scan or --class-prefix must be specified");
                 return 1;
             }
 
-            var fileBytes = File.ReadAllBytes(args[0]);
-            var searchBytes = System.Text.Encoding.UTF8.GetBytes(args[1]);
-
-            using var fileStream = new MemoryStream(fileBytes);
-            using var reader = new DeserializeReader(fileStream);
-
-            var header = new SerializationHeaderRecord(reader);
-            var library = new BinaryLibrary(reader);
-            var records = new List<ClassWithMemberAndTypes>();
-
-            var classNamePositions = BoyerMoore.IndexesOf(fileBytes, searchBytes);
-
-            foreach (var classNamePosition in classNamePositions)
+            if (fullScan && classPrefix != null && classPrefix.Length > 0)
             {
-                var updatedPosition = classNamePosition;
-                updatedPosition -= 1; // Name size
-                updatedPosition -= 4; // Object id
-                updatedPosition -= 1; // RecordType (ClassWithMembersAndTypes)
+                Console.WriteLine("You must choose either --full-scan or --class-prefix, not both.");
+                return 1;
+            }
 
-                if (updatedPosition < 0)
+            try
+            {
+                var outputPathString = outputPath == null
+                    ? Path.Combine(Path.GetDirectoryName(argument.FullName), $"{argument.Name}.generated")
+                    : outputPath.FullName;
+
+                if (!Directory.Exists(outputPathString) && !Directory.CreateDirectory(outputPathString).Exists)
                 {
-                    continue;
+                    Console.WriteLine($"Failed to create output path: \"{argument.FullName}\"");
+                    return 1;
                 }
 
-                reader.BaseStream.Position = updatedPosition;
+                using var fileStream = File.OpenRead(argument.FullName);
+                using var reader = new DeserializeReader(fileStream);
+
+                // Make sure we have a valid header before looking
+                // TODO Improve the structure checking in SerializationHeaderRecord, it currenly only checks the first
+                //      byte while checking the type.
+                var header = new SerializationHeaderRecord(reader);
+
+                // Search through the file for positions to check
+                var positions = FindPositions(fileStream, fullScan, classPrefix);
+
+                Console.WriteLine(
+                    $"Found {positions.Length.ToString("N0", CultureInfo.InvariantCulture)} locations to check in" +
+                    $" \"{argument.Name}\""
+                );
+
+                // Store the percent so we only re-render when changed
+                var renderedPercent = 0.0;
+
+                // Check the found positions for class structures
+                var classes = ScanForClasses(reader, positions, (int currentIndex) =>
+                {
+                    var percent = Math.Round((double)currentIndex / (double)positions.Length * 100, 0);
+                    if (renderedPercent != percent)
+                    {
+                        Console.Write($"\r({percent}%) ");
+                        renderedPercent = percent;
+                    }
+                });
+
+                // Overwrite the last % line
+                Console.Write($"\r{new string(' ', "(100.00%) ".Length)}\r");
+
+                foreach (var structure in classes)
+                {
+                    WriteClass(structure, outputPathString, namespaceToOutput);
+                }
+
+                return 0;
+            }
+            catch (Exception e) when (e is DirectoryNotFoundException || e is FileNotFoundException)
+            {
+                Console.WriteLine($"File not found: \"{argument.FullName}\"");
+                return 1;
+            }
+            catch (DeserializeException e)
+            {
+                Console.WriteLine($"Unexpected file structure: {e.Message}");
+                return 1;
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception e)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                Console.WriteLine($"Fatal error: {e.Message}");
+#if DEBUG
+                Debugger.Break();
+#endif
+                return 1;
+            }
+        }
+
+        private static int[] FindPositions(Stream inputStream, bool fullScan, string[] classPrefixes)
+        {
+            using var memoryStream = new MemoryStream();
+
+            inputStream.Position = 0;
+            inputStream.CopyTo(memoryStream);
+
+            var buffer = memoryStream.GetBuffer();
+
+            if (fullScan)
+            {
+                var searchBytes = new byte[] { (byte)RecordType.ClassWithMembersAndTypes };
+                return BoyerMoore.IndexesOf(buffer, searchBytes);
+            }
+            else
+            {
+                var potentialPositions = new List<int>();
+
+                foreach (var prefix in classPrefixes)
+                {
+                    var searchBytes = System.Text.Encoding.UTF8.GetBytes(prefix);
+                    var prefixPositions = BoyerMoore.IndexesOf(buffer, searchBytes);
+
+                    if (prefixPositions.Length < 1)
+                    {
+                        continue;
+                    }
+
+                    foreach (var currentPosition in prefixPositions)
+                    {
+                        var updatedPosition = currentPosition;
+                        updatedPosition -= 1; // Skip backwards past potential Name size (single byte, hopefully)
+                        updatedPosition -= 4; // Skip backwards past potential Object id (int32)
+                        updatedPosition -= 1; // Skip backwards past potential RecordType (byte)
+                        if (updatedPosition > 0)
+                        {
+                            potentialPositions.Add(updatedPosition);
+                        }
+                    }
+                }
+
+                potentialPositions.Sort();
+
+                return potentialPositions.ToArray();
+            }
+        }
+        
+        private static ClassStructure[] ScanForClasses(DeserializeReader reader, int[] positions, Action<int> positionUpdate)
+        {
+            var classes = new List<ClassStructure>();
+            var positionIndex = 0;
+
+            foreach (var position in positions)
+            {
+                positionUpdate(positionIndex++);
+
+                reader.BaseStream.Position = position;
 
                 var type = reader.PeekEnum<RecordType>();
 
@@ -55,101 +185,86 @@ namespace DeserializeClassBuilder
                 try
                 {
                     var record = new ClassWithMemberAndTypes(reader);
-                    records.Add(record);
+                    var structure = ClassStructureFactory.BuildFromClassWithMemberAndTypes(record);
 
-                    Console.WriteLine($"Parsed {record.ClassInfo.ClassName} at {updatedPosition}");
+                    classes.Add(structure);
+
+                    Console.WriteLine($"\rParsed {record.ClassInfo.ClassName} at {position}");
                 }
-                catch (Exception e)
+#pragma warning disable CA1031 // Do not catch general exception types
+                catch// (Exception e)
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
-                    Console.WriteLine($"Failed to parse at {updatedPosition} {e.Message}");
+                    //Debug.WriteLine($"Failed to parse at {position} {e.Message}");
                 }
             }
 
-            Directory.CreateDirectory("output");
-
-            foreach(var record in records)
-            {
-                var classTemplate = "using System;\r\n" +
-                    "\r\n" +
-                    "namespace DeserializeTesting.Deserialize.Lo.Tables\r\n" +
-                    "{\r\n" +
-                    "    [Serializable]\r\n" +
-                    $"    public class {record.ClassInfo.ClassName} : ITable\r\n" +
-                    "    {\r\n";
-
-                foreach (var memberName in record.ClassInfo.MemberNames)
-                {
-                    classTemplate += $"        // {GetMemberElement(memberName, record.MemberTypeInfo.Types[memberName], record.MemberTypeInfo.Infos[memberName])}\r\n";
-                }
-                
-                classTemplate +=
-                    "     }\r\n" +
-                    "}\r\n";
-
-                File.WriteAllText($"output\\{record.ClassInfo.ClassName}.cs", classTemplate);
-            }
-
-            return 0;
+            return classes.ToArray();
         }
 
-        public static string GetMemberElement(string memberName, BinaryType binaryType, Deserialize.Common.AdditionalTypeInfo additionalTypeInfo)
+        private static void WriteClass(ClassStructure structure, string outputPath, string namespaceString)
         {
-            switch(binaryType)
+            if (structure.Extends != null)
             {
-                case BinaryType.String:
-                    {
-                        return $"public string {GetMemberName(memberName)}";
-                    }
-                case BinaryType.Primitive:
-                    {
-                        if (!(additionalTypeInfo.Info is Deserialize.Common.AdditionalTypeInfo.AdditionalInfoPrimitiveType primitiveType))
-                        {
-                            throw new Exception("Unexpected additional type");
-                        }
-
-                        switch(primitiveType.Type)
-                        {
-                            case PrimitiveType.Int32:
-                                return $"public int {GetMemberName(memberName)}";
-
-                            default:
-                                return $"public {primitiveType.Type} {memberName}";
-                        }
-                    }
-                case BinaryType.SystemClass:
-                    {
-                        if (!(additionalTypeInfo.Info is Deserialize.Common.AdditionalTypeInfo.AdditionalInfoSystemClass systemClass))
-                        {
-                            throw new Exception("Unexpected additional type");
-                        }
-
-                        var dictString = "System.Collections.Generic.Dictionary`2[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[";
-                        if (systemClass.ClassName.StartsWith(dictString, StringComparison.Ordinal))
-                        {
-                            var refClass = $"{systemClass.ClassName.Substring(dictString.Length).Split(",").First()}";
-
-                            return $"public Dictionary<string, {refClass}> {memberName};";
-                        }
-
-                        return $"{memberName} {systemClass.ClassName}";
-                    }
-                default:
-                    Console.WriteLine("Unhandled");
-                    return $"{memberName}";
+                WriteClass(structure.Extends, outputPath, namespaceString);
             }
 
-            return null;
-        }
+            var classFile = $"{structure.Name}.cs";
 
-        public static string GetMemberName(string memberName)
-        {
-            var match = Regex.Match(memberName, "^<(.*)>k__BackingField$");
-            if (!match.Success)
+            if (!string.IsNullOrWhiteSpace(structure.Namespace))
             {
-                return $"{memberName};";
+                outputPath = Path.Combine(outputPath, structure.Namespace);
+                if (!Directory.Exists(outputPath))
+                {
+                    Directory.CreateDirectory(outputPath);
+                }
             }
 
-            return $"{match.Groups[1]} {{ get; set; }}";
+            var classFilePath = Path.Combine(outputPath, classFile);
+
+            if (File.Exists(classFilePath) && !confirmedOverwrite)
+            {
+                string confirmation = "";
+
+                Console.WriteLine();
+                Console.WriteLine($"The output file \"{classFile}\" already exists.");
+                Console.WriteLine();
+
+                while (confirmation != "y" && confirmation != "n" && confirmation != "a" && confirmation != "all")
+                {
+                    Console.WriteLine("Do you want to overwrite the existing file? [y/N/all] ");
+                    confirmation = Console.ReadLine().ToLowerInvariant();
+
+                    if (string.IsNullOrEmpty(confirmation))
+                    {
+                        confirmation = "n";
+                        break;
+                    }
+
+                    if (confirmation != "y" && confirmation != "n" && confirmation != "a" && confirmation != "all")
+                    {
+                        Console.WriteLine("Invalid input");
+                    }
+                }
+
+                if (confirmation == "n")
+                {
+                    Console.WriteLine("Skipping file");
+                    return;
+                }
+
+                if (confirmation == "a")
+                {
+                    Console.WriteLine("Overwriting all");
+                    confirmedOverwrite = true;
+                }
+                else
+                {
+                    Console.WriteLine("Overwriting file");
+                }
+            }
+
+            structure.WriteTo(classFilePath, namespaceString);
         }
     }
 }

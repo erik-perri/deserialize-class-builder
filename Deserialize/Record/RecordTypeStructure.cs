@@ -3,6 +3,9 @@ using DeserializeClassBuilder.Deserialize.Exceptions;
 
 namespace DeserializeClassBuilder.Deserialize.Record
 {
+    /// <summary>
+    /// Base class for the RecordType structure, validates the expected type on initialization.
+    /// </summary>
     internal abstract class RecordTypeStructure
     {
         public RecordType Type { get; }
