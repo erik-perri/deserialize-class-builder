@@ -52,8 +52,8 @@ namespace DeserializeClassBuilder
             }
 
             classTemplate +=
-                "     }\r\n" +
-                "}\r\n";
+                "    }\r\n" +
+                "}";
 
             File.WriteAllText(classFilePath, classTemplate);
         }
