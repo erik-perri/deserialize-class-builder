@@ -1,6 +1,5 @@
 ﻿using DeserializeClassBuilder.Deserialize.Common;
 using DeserializeClassBuilder.Deserialize.Enums;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -45,6 +44,7 @@ namespace DeserializeClassBuilder.Deserialize.Record
                         lowerBounds.Add(reader.ReadInt32());
                     }
                     break;
+
                 default:
                     break;
             }

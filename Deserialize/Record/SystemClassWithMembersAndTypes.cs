@@ -1,5 +1,4 @@
-﻿using DeserializeClassBuilder.Deserialize;
-using DeserializeClassBuilder.Deserialize.Common;
+﻿using DeserializeClassBuilder.Deserialize.Common;
 using DeserializeClassBuilder.Deserialize.Enums;
 using DeserializeClassBuilder.Deserialize.Exceptions;
 

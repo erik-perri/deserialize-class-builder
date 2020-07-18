@@ -1,6 +1,5 @@
 ﻿using DeserializeClassBuilder.Deserialize.Enums;
 using DeserializeClassBuilder.Deserialize.Exceptions;
-using System.IO;
 
 namespace DeserializeClassBuilder.Deserialize.Record
 {

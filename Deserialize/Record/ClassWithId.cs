@@ -1,11 +1,9 @@
-﻿using DeserializeClassBuilder.Deserialize.Common;
-using DeserializeClassBuilder.Deserialize.Enums;
-using DeserializeClassBuilder.Deserialize.Exceptions;
+﻿using DeserializeClassBuilder.Deserialize.Enums;
 
 namespace DeserializeClassBuilder.Deserialize.Record
 {
     /// <summary>
-    /// The ClassWithId record is the most compact. It has no metadata. It refers to metadata defined in 
+    /// The ClassWithId record is the most compact. It has no metadata. It refers to metadata defined in
     /// SystemClassWithMembers, SystemClassWithMembersAndTypes, ClassWithMembers, or ClassWithMembersAndTypes record.
     ///
     /// [MS-NRBF] 2.3.2.5 ClassWithId

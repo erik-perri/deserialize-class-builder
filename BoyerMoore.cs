@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 
 namespace DeserializeClassBuilder
 {
@@ -15,11 +14,10 @@ namespace DeserializeClassBuilder
         /// <summary>
         /// Returns the index within this string of the first occurrence of the
         /// specified substring. If it is not a substring, return -1.
-        /// 
-        /// There is no Galil because it only generates one match.
         /// </summary>
         /// <param name="haystack">The string to be scanned</param>
         /// <param name="needle">The target string to search</param>
+        /// <param name="resultLimit">The maximum number of results to return</param>
         /// <returns>The start index of the substring</returns>
         public static ReadOnlyCollection<int> IndexesOf(byte[] haystack, byte[] needle, int resultLimit = -1)
         {
@@ -75,6 +73,13 @@ namespace DeserializeClassBuilder
             return new ReadOnlyCollection<int>(offsets);
         }
 
+        /// <summary>
+        /// Returns the index within this string of the first occurrence of the
+        /// specified substring. If it is not a substring, return -1.
+        /// </summary>
+        /// <param name="haystack">The string to be scanned</param>
+        /// <param name="needle">The target string to search</param>
+        /// <returns></returns>
         public static int IndexOf(byte[] haystack, byte[] needle)
         {
             return IndexesOf(haystack, needle).FirstOrDefault();
