@@ -163,7 +163,7 @@ namespace DeserializeClassBuilder
                 return potentialPositions.ToArray();
             }
         }
-        
+
         private static ClassStructure[] ScanForClasses(DeserializeReader reader, int[] positions, Action<int> positionUpdate)
         {
             var classes = new List<ClassStructure>();
@@ -192,10 +192,10 @@ namespace DeserializeClassBuilder
                     Console.WriteLine($"\rParsed {record.ClassInfo.ClassName} at {position}");
                 }
 #pragma warning disable CA1031 // Do not catch general exception types
-                catch// (Exception e)
+                catch (Exception e)
 #pragma warning restore CA1031 // Do not catch general exception types
                 {
-                    //Debug.WriteLine($"Failed to parse at {position} {e.Message}");
+                    Debug.WriteLine($"Failed to parse at {position} {e.Message}");
                 }
             }
 
