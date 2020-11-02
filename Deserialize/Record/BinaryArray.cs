@@ -19,7 +19,6 @@ namespace DeserializeClassBuilder.Deserialize.Record
         public ReadOnlyCollection<int> LowerBounds { get; }
         public BinaryType ItemType { get; }
         public AdditionalTypeInfo AdditionalTypeInfo { get; }
-        internal SystemClassWithMembersAndTypes SystemClass { get; }
 
         public BinaryArray(DeserializeReader reader) : base(reader, RecordType.BinaryArray)
         {
@@ -53,14 +52,11 @@ namespace DeserializeClassBuilder.Deserialize.Record
             LowerBounds = new ReadOnlyCollection<int>(lowerBounds);
             ItemType = reader.ReadEnum<BinaryType>();
             AdditionalTypeInfo = new AdditionalTypeInfo(reader, ItemType);
-
-            SystemClass = new SystemClassWithMembersAndTypes(reader);
         }
 
         public override string ToString()
         {
-            return $"ObjectId = {ObjectId}; BinaryArrayType = {BinaryArrayType}; Rank = {Rank}; ItemType = {ItemType};" +
-                $" SystemClass = {{ {SystemClass} }}";
+            return $"ObjectId = {ObjectId}; BinaryArrayType = {BinaryArrayType}; Rank = {Rank}; ItemType = {ItemType};";
         }
     }
 }
